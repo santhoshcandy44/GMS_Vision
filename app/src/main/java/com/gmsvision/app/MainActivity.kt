@@ -39,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -56,17 +55,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gmsvision.app.ui.theme.AppTheme
 
@@ -111,13 +107,8 @@ fun MainScreen() {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
-    val items = listOf(
-        BottomNavItem("home", "Home", Icons.Default.Home),
-        BottomNavItem("settings", "Settings", Icons.Default.Settings)
-    )
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    var currentRoute  by  rememberSaveable { mutableStateOf("home") }
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -132,48 +123,48 @@ fun BottomNavigationBar(navController: NavController) {
                 )
             )
     ) {
-        items.forEach { item ->
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        item.icon,
-                        contentDescription = item.label,
-                        tint = if (currentRoute == item.route) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        }
-                    )
-                },
-                label = {
-                    Text(
-                        item.label,
-                        color = if (currentRoute == item.route) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        }
-                    )
-                },
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
+
+        NavigationBarItem(
+            selected = currentRoute == "home",
+            onClick = {
+                if (currentRoute != "home") {
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    currentRoute = "home"
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home"
                 )
-            )
-        }
+            },
+            label = { Text("Home") }
+        )
+        NavigationBarItem(
+            selected = currentRoute == "settings",
+            onClick = {
+                if (currentRoute != "settings") {
+                    navController.navigate("settings") {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                    currentRoute = "summary"
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Summary"
+                )
+            },
+            label = { Text("Summary") }
+        )
+
     }
 }
 
@@ -188,7 +179,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
     val bundle = rememberSaveable { Bundle() }
     val context = LocalContext.current
-    val webView =  remember {
+    val webView = remember {
         WebView(context).apply {
             webViewClient = object : WebViewClient() {
                 override fun onPageStarted(
@@ -202,7 +193,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    if(isRefreshing){
+                    if (isRefreshing) {
                         isRefreshing = false
                     }
                 }
@@ -313,11 +304,14 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                         update = { view ->
                             if (bundle.isEmpty) {
                                 view.loadUrl(url)
-                            }else{
+                            } else {
                                 view.restoreState(bundle)
                             }
                         },
                         onRelease = { view ->
+                            view.saveState(bundle)
+                        },
+                        onReset = { view ->
                             view.saveState(bundle)
                         },
                         modifier = Modifier
@@ -441,12 +435,6 @@ fun SettingItemCard(item: SettingItem) {
         }
     }
 }
-
-data class BottomNavItem(
-    val route: String,
-    val label: String,
-    val icon: ImageVector
-)
 
 data class SettingItem(
     val title: String,
