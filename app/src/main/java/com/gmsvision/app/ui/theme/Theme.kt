@@ -1,5 +1,6 @@
 package com.gmsvision.app.ui.theme
 
+
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -34,13 +35,13 @@ data class CustomColorScheme(
 )
 
 private val DarkColorPalette = darkColorScheme(
-    primary = Color.Red,
-    secondary = Color(0xFFE5F0F4),
+    primary = Color(0xFF027EB0),
+    secondary = Color(0xFF027EB0),
     background = Color(0xFF121212),
     surface = Color(0xFF121212),
     surfaceContainer = Color(0xFF121212),
-    primaryContainer = Color.Red,
-    secondaryContainer = Color.Red,
+    primaryContainer = Color(0xFF027EB0),
+    secondaryContainer = Color(0xFF1E1E1E),
     onSecondaryContainer = Color.White,
     onSurface = Color.White,
     onPrimary = Color.White,
@@ -54,14 +55,14 @@ private val DarkColorPalette = darkColorScheme(
 )
 
 private val LightColorPalette = lightColorScheme(
-    primary = Color.Red,
-    secondary = Color(0xFFE5F0F4),
+    primary = Color(0xFF027EB0),
+    secondary = Color(0xFF027EB0),
     background = Color.White,
     surface = Color.White,
     surfaceContainer = Color.White,
     secondaryContainer = Color(red = 232, green = 222, blue = 248),
-    primaryContainer = Color.Red,
-    onSecondaryContainer = Color.Red,
+    primaryContainer = Color(0xFF027EB0),
+    onSecondaryContainer = Color(0xFF027EB0),
     onSurface = Color.Black,
     onPrimary = Color.White,
     onSecondary = Color.Black,

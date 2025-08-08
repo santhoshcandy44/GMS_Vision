@@ -2,6 +2,8 @@ package com.gmsvision.app
 
 import android.graphics.Bitmap
 import android.os.Bundle
+import android.webkit.WebResourceError
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -150,7 +152,9 @@ fun BottomNavigationBar(navController: NavController) {
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId)
+                        popUpTo(navController.graph.startDestinationId){
+                            saveState = true
+                        }
                         launchSingleTop = true
                     }
                 },
@@ -209,7 +213,6 @@ fun HomeScreen() {
                 Text(
                     text = "\uD83D\uDCDA TNPSC Current Affairs",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -266,6 +269,14 @@ fun HomeScreen() {
 
                                     override fun onPageFinished(view: WebView?, url: String?) {
                                         super.onPageFinished(view, url)
+                                    }
+
+                                    override fun onReceivedError(
+                                        view: WebView?,
+                                        request: WebResourceRequest?,
+                                        error: WebResourceError?
+                                    ) {
+                                        super.onReceivedError(view, request, error)
                                         isAnyError = true
                                     }
                                 }
@@ -329,7 +340,6 @@ fun SettingsScreen() {
                 Text(
                     text = "⚙️ Settings",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
