@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -226,9 +227,15 @@ fun HomeScreen() {
                             .align(Alignment.Center)
                     ) {
                         Text("Something went wrong...")
-                        Button(onClick = {
-                            webView?.reload()
-                        }) {
+                        Button(
+                            onClick = {
+                                webView?.reload()
+                            }, colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(
+                                    0xFFFFA500
+                                ), contentColor = Color.White
+                            )
+                        ) {
                             Text("Retry")
                         }
                     }
