@@ -160,6 +160,7 @@ fun BottomNavigationBar(navController: NavController) {
                             saveState = true
                         }
                         launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -177,8 +178,8 @@ fun BottomNavigationBar(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onPopBackStack: () -> Unit) {
-    var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
 
+    var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
