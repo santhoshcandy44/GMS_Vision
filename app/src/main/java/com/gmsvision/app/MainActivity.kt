@@ -181,6 +181,7 @@ fun BottomNavigationBar(navController: NavController) {
 fun HomeScreen(onPopBackStack: () -> Unit) {
 
     var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
+    var currentUrl by rememberSaveable { mutableStateOf(url) }
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
@@ -309,7 +310,10 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                             webView
                         },
                         update = { webView ->
-                            webView.loadUrl(url)
+                            if (currentUrl != url) {
+                                currentUrl = url
+                                webView.loadUrl(url)
+                            }
                         },
                         modifier = Modifier
                             .fillMaxSize()
