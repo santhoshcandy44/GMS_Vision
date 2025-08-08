@@ -1,6 +1,7 @@
 package com.gmsvision.app
 
 import android.app.Activity
+import android.app.Application
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.webkit.WebResourceError
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.AndroidViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -71,6 +73,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gmsvision.app.ui.theme.AppTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -193,6 +197,53 @@ fun BottomNavigationBar(navController: NavController) {
     }
 }
 
+
+class HomeViewModel (application: Application) : AndroidViewModel(application){
+
+    val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    val _isAnyError = MutableStateFlow(false)
+    val isAnyError = _isAnyError.asStateFlow()
+
+    val webView = WebView(application).apply {
+        webViewClient = object : WebViewClient() {
+            override fun onPageStarted(
+                view: WebView?,
+                url: String?,
+                favicon: Bitmap?
+            ) {
+                super.onPageStarted(view, url, favicon)
+                isAnyError = false
+            }
+
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                if (_isRefreshing.value) {
+                    isRefreshing.value = false
+                }
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                super.onReceivedError(view, request, error)
+                _isAnyError.value = true
+            }
+        }
+        settings.javaScriptEnabled = true
+        settings.domStorageEnabled = true
+        settings.loadWithOverviewMode = true
+        settings.useWideViewPort = true
+        settings.builtInZoomControls = true
+        settings.displayZoomControls = false
+        loadUrl(url)
+    }
+
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onPopBackStack: () -> Unit) {
@@ -204,51 +255,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
     val bundle = rememberSaveable { Bundle() }
     val context = LocalContext.current
-    val webView = remember {
-        WebView(context).apply {
-            webViewClient = object : WebViewClient() {
-                override fun onPageStarted(
-                    view: WebView?,
-                    url: String?,
-                    favicon: Bitmap?
-                ) {
-                    super.onPageStarted(view, url, favicon)
-                    isAnyError = false
-                }
-
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    super.onPageFinished(view, url)
-                    if (isRefreshing) {
-                        isRefreshing = false
-                    }
-                }
-
-                override fun onReceivedError(
-                    view: WebView?,
-                    request: WebResourceRequest?,
-                    error: WebResourceError?
-                ) {
-                    super.onReceivedError(view, request, error)
-                    isAnyError = true
-                }
-            }
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
-            settings.loadWithOverviewMode = true
-            settings.useWideViewPort = true
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
-            if (bundle.isEmpty) {
-                loadUrl(url)
-                Toast.makeText(context,"Loading..", Toast.LENGTH_LONG)
-                    .show()
-            } else {
-                restoreState(bundle)
-            }
-        }
-    }
-
-
+    val webView =
 
 
     BackHandler {
