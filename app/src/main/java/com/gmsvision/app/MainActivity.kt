@@ -181,7 +181,7 @@ fun BottomNavigationBar(navController: NavController) {
 fun HomeScreen(onPopBackStack: () -> Unit) {
 
     var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
-    var currentUrl by rememberSaveable { mutableStateOf(url) }
+    var currentUrl by rememberSaveable { mutableStateOf("") }
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
