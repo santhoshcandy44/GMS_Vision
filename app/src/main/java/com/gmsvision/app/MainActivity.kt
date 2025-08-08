@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -157,7 +158,7 @@ fun BottomNavigationBar(navController: NavController) {
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
+                        popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
                         launchSingleTop = true
@@ -181,11 +182,11 @@ fun BottomNavigationBar(navController: NavController) {
 fun HomeScreen(onPopBackStack: () -> Unit) {
 
     var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
-    var currentUrl by rememberSaveable { mutableStateOf("") }
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
 
+    val bundle = rememberSaveable { Bundle() }
     val context = LocalContext.current
     val webView =  remember {
         WebView(context).apply {
@@ -309,11 +310,15 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                         factory = { context ->
                             webView
                         },
-                        update = { webView ->
-                            if (currentUrl != url) {
-                                currentUrl = url
+                        update = { view ->
+                            if (bundle.isEmpty) {
                                 webView.loadUrl(url)
+                            }else{
+                                webView.restoreState(bundle)
                             }
+                        },
+                        onRelease = { view ->
+                            view.saveState(bundle)
                         },
                         modifier = Modifier
                             .fillMaxSize()
