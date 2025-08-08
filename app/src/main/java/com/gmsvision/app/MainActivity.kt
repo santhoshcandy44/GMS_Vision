@@ -312,9 +312,9 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                         },
                         update = { view ->
                             if (bundle.isEmpty) {
-                                webView.loadUrl(url)
+                                view.loadUrl(url)
                             }else{
-                                webView.restoreState(bundle)
+                                view.restoreState(bundle)
                             }
                         },
                         onRelease = { view ->
