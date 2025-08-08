@@ -97,7 +97,11 @@ fun MainScreen() {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("home") { HomeScreen() }
+            composable("home") {
+                HomeScreen(onPopBackStack = {
+                    navController.popBackStack()
+                })
+            }
             composable("settings") { SettingsScreen() }
         }
     }
@@ -172,16 +176,20 @@ fun BottomNavigationBar(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen() {
-    var url by remember { mutableStateOf("https://www.google.com") }
+fun HomeScreen(onPopBackStack: () -> Unit) {
+    var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
 
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
     var webView by remember { mutableStateOf<WebView?>(null) }
 
-    BackHandler(webView?.canGoBack() == true) {
-        webView?.goBack()
+    BackHandler {
+        if (webView?.canGoBack() == true) {
+            webView?.goBack()
+        } else {
+            onPopBackStack()
+        }
     }
 
     Column(
@@ -223,7 +231,6 @@ fun HomeScreen() {
             onRefresh = {
                 isRefreshing = true
                 webView?.reload()
-                isRefreshing = false
             }) {
 
             if (isAnyError) {
@@ -273,6 +280,9 @@ fun HomeScreen() {
 
                                     override fun onPageFinished(view: WebView?, url: String?) {
                                         super.onPageFinished(view, url)
+                                        if(isRefreshing){                                        isRefreshing = false
+                                            isRefreshing = false
+                                        }
                                     }
 
                                     override fun onReceivedError(
