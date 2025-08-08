@@ -7,6 +7,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -237,8 +238,18 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
             settings.useWideViewPort = true
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
+            if (bundle.isEmpty) {
+                loadUrl(url)
+                Toast.makeText(context,"Loading..", Toast.LENGTH_LONG)
+                    .show()
+            } else {
+                restoreState(bundle)
+            }
         }
     }
+
+
+
 
     BackHandler {
         if (webView.canGoBack()) {
@@ -326,11 +337,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                             webView
                         },
                         update = { view ->
-                            if (bundle.isEmpty) {
-                                view.loadUrl(url)
-                            } else {
-                                view.restoreState(bundle)
-                            }
+
                         },
                         onRelease = { view ->
                             view.saveState(bundle)
