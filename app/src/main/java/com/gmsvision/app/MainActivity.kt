@@ -1,5 +1,6 @@
 package com.gmsvision.app
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.webkit.WebResourceError
@@ -90,6 +91,14 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
+    val activity  = LocalContext.current as? Activity?
+
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+
+
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
         containerColor = MaterialTheme.colorScheme.background
@@ -101,7 +110,11 @@ fun MainScreen() {
         ) {
             composable("home") {
                 HomeScreen(onPopBackStack = {
-                    navController.popBackStack()
+                    if(currentRoute=="home"){
+                        activity?.finish()
+                    }else{
+                        navController.popBackStack("home",false)
+                    }
                 })
             }
             composable("settings") { SettingsScreen() }
@@ -118,6 +131,7 @@ fun BottomNavigationBar(navController: NavController) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
 
     NavigationBar(
         containerColor = MaterialTheme.colorScheme.surface,
