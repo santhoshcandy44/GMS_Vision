@@ -8,7 +8,6 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -49,6 +48,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,6 +66,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val navController = rememberNavController()
 
-    val activity  = LocalContext.current as? Activity?
+    val activity = LocalContext.current as? Activity?
 
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -115,10 +116,10 @@ fun MainScreen() {
         ) {
             composable("home") {
                 HomeScreen(onPopBackStack = {
-                    if(currentRoute=="home"){
+                    if (currentRoute == "home") {
                         activity?.finish()
-                    }else{
-                        navController.popBackStack("home",false)
+                    } else {
+                        navController.popBackStack("home", false)
                     }
                 })
             }
@@ -198,7 +199,7 @@ fun BottomNavigationBar(navController: NavController) {
 }
 
 
-class HomeViewModel (application: Application) : AndroidViewModel(application){
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
@@ -206,65 +207,73 @@ class HomeViewModel (application: Application) : AndroidViewModel(application){
     val _isAnyError = MutableStateFlow(false)
     val isAnyError = _isAnyError.asStateFlow()
 
-    val webView = WebView(application).apply {
-        webViewClient = object : WebViewClient() {
-            override fun onPageStarted(
-                view: WebView?,
-                url: String?,
-                favicon: Bitmap?
-            ) {
-                super.onPageStarted(view, url, favicon)
-                isAnyError = false
-            }
+    var url = "https://tnpsccurrentaffairs.in"
 
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                if (_isRefreshing.value) {
-                    isRefreshing.value = false
+    val webView by lazy {
+        WebView(application.applicationContext).apply {
+            webViewClient = object : WebViewClient() {
+                override fun onPageStarted(
+                    view: WebView?,
+                    url: String?,
+                    favicon: Bitmap?
+                ) {
+                    super.onPageStarted(view, url, favicon)
+                    _isAnyError.value = false
+                }
+
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    if (_isRefreshing.value) {
+                        _isRefreshing.value = false
+                    }
+                }
+
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    super.onReceivedError(view, request, error)
+                    _isAnyError.value = true
                 }
             }
-
-            override fun onReceivedError(
-                view: WebView?,
-                request: WebResourceRequest?,
-                error: WebResourceError?
-            ) {
-                super.onReceivedError(view, request, error)
-                _isAnyError.value = true
-            }
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.loadWithOverviewMode = true
+            settings.useWideViewPort = true
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
+            loadUrl(this@HomeViewModel.url)
         }
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.loadWithOverviewMode = true
-        settings.useWideViewPort = true
-        settings.builtInZoomControls = true
-        settings.displayZoomControls = false
-        loadUrl(url)
+
     }
 
+    fun updateIsRefreshing(value: Boolean){
+        _isRefreshing.value = value
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(onPopBackStack: () -> Unit) {
 
-    var url by remember { mutableStateOf("https://tnpsccurrentaffairs.in") }
+    val viewModel = viewModel<HomeViewModel>()
 
-    var isAnyError by rememberSaveable { mutableStateOf(false) }
-    var isRefreshing by rememberSaveable { mutableStateOf(false) }
+    val isAnyError by viewModel.isAnyError.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     val bundle = rememberSaveable { Bundle() }
     val context = LocalContext.current
-    val webView =
+    val webView = viewModel.webView
 
 
-    BackHandler {
-        if (webView.canGoBack()) {
-            webView.goBack()
-        } else {
-            onPopBackStack()
+        BackHandler {
+            if (webView.canGoBack()) {
+                webView.goBack()
+            } else {
+                onPopBackStack()
+            }
         }
-    }
 
     Column(
         modifier = Modifier
@@ -303,7 +312,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
-                isRefreshing = true
+                viewModel.updateIsRefreshing(true)
                 webView.reload()
             }) {
 
