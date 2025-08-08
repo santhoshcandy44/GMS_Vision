@@ -57,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -183,11 +184,48 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
     var isAnyError by rememberSaveable { mutableStateOf(false) }
     var isRefreshing by rememberSaveable { mutableStateOf(false) }
-    var webView by remember { mutableStateOf<WebView?>(null) }
+
+    val context = LocalContext.current
+    val webView =  remember {
+        WebView(context).apply {
+            webViewClient = object : WebViewClient() {
+                override fun onPageStarted(
+                    view: WebView?,
+                    url: String?,
+                    favicon: Bitmap?
+                ) {
+                    super.onPageStarted(view, url, favicon)
+                    isAnyError = false
+                }
+
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    if(isRefreshing){
+                        isRefreshing = false
+                    }
+                }
+
+                override fun onReceivedError(
+                    view: WebView?,
+                    request: WebResourceRequest?,
+                    error: WebResourceError?
+                ) {
+                    super.onReceivedError(view, request, error)
+                    isAnyError = true
+                }
+            }
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            settings.loadWithOverviewMode = true
+            settings.useWideViewPort = true
+            settings.builtInZoomControls = true
+            settings.displayZoomControls = false
+        }
+    }
 
     BackHandler {
-        if (webView?.canGoBack() == true) {
-            webView?.goBack()
+        if (webView.canGoBack()) {
+            webView.goBack()
         } else {
             onPopBackStack()
         }
@@ -231,7 +269,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                webView?.reload()
+                webView.reload()
             }) {
 
             if (isAnyError) {
@@ -244,7 +282,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                         Text("Something went wrong...")
                         Button(
                             onClick = {
-                                webView?.reload()
+                                webView.reload()
                             }, colors = ButtonDefaults.buttonColors(
                                 containerColor = Color(
                                     0xFFFFA500
@@ -268,42 +306,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                 ) {
                     AndroidView(
                         factory = { context ->
-                            WebView(context).apply {
-                                webViewClient = object : WebViewClient() {
-                                    override fun onPageStarted(
-                                        view: WebView?,
-                                        url: String?,
-                                        favicon: Bitmap?
-                                    ) {
-                                        super.onPageStarted(view, url, favicon)
-                                        isAnyError = false
-                                    }
-
-                                    override fun onPageFinished(view: WebView?, url: String?) {
-                                        super.onPageFinished(view, url)
-                                        if(isRefreshing){                                        isRefreshing = false
-                                            isRefreshing = false
-                                        }
-                                    }
-
-                                    override fun onReceivedError(
-                                        view: WebView?,
-                                        request: WebResourceRequest?,
-                                        error: WebResourceError?
-                                    ) {
-                                        super.onReceivedError(view, request, error)
-                                        isAnyError = true
-                                    }
-                                }
-                                settings.javaScriptEnabled = true
-                                settings.domStorageEnabled = true
-                                settings.loadWithOverviewMode = true
-                                settings.useWideViewPort = true
-                                settings.builtInZoomControls = true
-                                settings.displayZoomControls = false
-                                loadUrl(url)
-                                webView = this
-                            }
+                            webView
                         },
                         update = { webView ->
                             webView.loadUrl(url)
