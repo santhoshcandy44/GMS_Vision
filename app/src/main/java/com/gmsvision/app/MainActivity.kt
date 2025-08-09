@@ -8,7 +8,6 @@ import android.graphics.Bitmap
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
-import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -31,9 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -54,6 +51,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -227,8 +227,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     request: WebResourceRequest?
                 ): Boolean {
                     val url = request?.url ?: return false
-                    view?.invalidate()
-                    view?.post { view.scrollTo(0, 0) }
                     view?.loadUrl(url.toString())
                     return true
                 }
@@ -367,65 +365,76 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    viewModel.updateIsRefreshing(true)
-                    webView.reload()
-                }) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
 
-                if (isAnyError) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Column(
-                            modifier = Modifier
-                                .wrapContentSize()
-                                .align(Alignment.Center)
+
+            val state = rememberPullToRefreshState()
+
+            if (isAnyError) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Column(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .align(Alignment.Center)
+                    ) {
+                        Text("Something went wrong...")
+                        Button(
+                            onClick = {
+                                webView.reload()
+                            }, colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(
+                                    0xFFFFA500
+                                ), contentColor = Color.White
+                            )
                         ) {
-                            Text("Something went wrong...")
-                            Button(
-                                onClick = {
-                                    webView.reload()
-                                }, colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(
-                                        0xFFFFA500
-                                    ), contentColor = Color.White
-                                )
-                            ) {
-                                Text("Retry")
-                            }
+                            Text("Retry")
                         }
                     }
-                } else {
-                    // WebView
-                    Card(
+                }
+            } else {
+                // WebView
+                Card(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                ) {
+                    AndroidView(
+                        factory = { context ->
+                            webView
+                        },
+                        update = { view ->
+
+                        },
+                        onRelease = { view ->
+
+                        },
+                        onReset = { view ->
+
+                        },
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState()),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.White
-                        ),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
-                    ) {
-                        AndroidView(
-                            factory = { context ->
-                                webView
-                            },
-                            update = { view ->
-
-                            },
-                            onRelease = { view ->
-
-                            },
-                            onReset = { view ->
-
-                            },
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(12.dp))
-                        )
-                    }
+                            .clip(RoundedCornerShape(12.dp))
+                            .pullToRefresh(
+                                isRefreshing = isRefreshing,
+                                state = state,
+                                onRefresh = {
+                                    viewModel.updateIsRefreshing(true)
+                                    webView.reload()
+                                })
+                    )
                 }
+
+                Indicator(
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    isRefreshing = isRefreshing,
+                    state = state
+                )
             }
 
             if (!isRefreshing && isLoading) {
