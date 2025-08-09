@@ -244,6 +244,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
+
+                        return false
                     }
                     return true
                 }
