@@ -16,12 +16,21 @@ sealed class ThemeMode {
     data object Light : ThemeMode()
 }
 
-class ThemeViewModel (application: Application): AndroidViewModel(application) {
+class ThemeViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val sharedPreferences = application.applicationContext.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+    private val sharedPreferences =
+        application.applicationContext.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
 
     private val _themeFlow = MutableStateFlow(getThemeMode())
-    val themeFlow  = _themeFlow.asStateFlow()
+    val themeFlow = _themeFlow.asStateFlow()
+
+    init {
+        sharedPreferences.registerOnSharedPreferenceChangeListener { prefs, key ->
+            if(key=="theme_mode"){
+                _themeFlow.value = prefs.getInt("theme_mode",-1)
+            }
+        }
+    }
 
     fun getThemeMode(): Int {
         return sharedPreferences.getInt("theme_mode", -1)
@@ -35,7 +44,6 @@ class ThemeViewModel (application: Application): AndroidViewModel(application) {
         }
         viewModelScope.launch {
             sharedPreferences.edit { putInt("theme_mode", modeInt) }
-            _themeFlow.value = modeInt
         }
     }
 }
