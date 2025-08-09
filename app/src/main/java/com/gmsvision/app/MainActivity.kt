@@ -67,6 +67,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
@@ -399,18 +400,24 @@ fun LoadingAlertDialog() {
     ) {
         Card(
             modifier = Modifier
-                .wrapContentSize()
-                .padding(16.dp),
+                .wrapContentSize(),
             shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             CircularProgressIndicator(
-                modifier = Modifier.size(48.dp),
+                modifier = Modifier.size(48.dp)
+                    .padding(16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 strokeWidth = 4.dp
             )
         }
     }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    LoadingAlertDialog()
 }
 
 @Composable
