@@ -137,9 +137,11 @@ val customTypography = Typography(
 
 @Composable
 fun AppTheme(
-    themeMode:Int,
     content: @Composable () -> Unit
 ) {
+
+    val viewModel: ThemeViewModel = viewModel<ThemeViewModel>()
+    val themeMode by viewModel.themeFlow.collectAsState()
 
     val darkTheme = when (themeMode) {
         1 -> true
