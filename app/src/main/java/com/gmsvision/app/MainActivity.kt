@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -44,6 +45,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -71,6 +73,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.AndroidViewModel
@@ -86,6 +89,8 @@ import com.google.firebase.installations.BuildConfig
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import androidx.core.net.toUri
+import com.gmsvision.app.ui.theme.ThemeMode
+import com.gmsvision.app.ui.theme.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -422,6 +427,7 @@ fun LoadingAlertDialog(modifier: Modifier = Modifier) {
     }
 }
 
+
 @Preview
 @Composable
 private fun Preview() {
@@ -430,6 +436,13 @@ private fun Preview() {
 
 @Composable
 fun SettingsScreen() {
+
+    val viewModel = viewModel<ThemeViewModel>()
+
+    val themeMode by viewModel.themeFlow.collectAsState()
+
+    var useSystemDefault by remember(themeMode) { mutableStateOf(themeMode == -1) }
+    val isDarkMode by remember(themeMode) { mutableStateOf(themeMode == 1) }
 
     val context = LocalContext.current
 
@@ -501,28 +514,82 @@ fun SettingsScreen() {
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
-                                text = item.title,
+                                text = "Theme Mode",
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = item.subtitle,
+                                text = "Customize Your Theme Mode",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
-                        }
 
-                        // Switch
-                        if (item.hasSwitch) {
-                            Switch(
-                                checked = isEnabled,
-                                onCheckedChange = { isEnabled = it },
-                                colors = SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                                    checkedTrackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                            // System Default Checkbox
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .padding(horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Absolute.SpaceBetween
+                            ) {
+
+                                Text("Use System Default", fontSize = 16.sp)
+
+                                Switch(
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White, // Thumb color when ON
+                                        checkedTrackColor = Color(0xFF00C04D), // Track background when ON
+                                        uncheckedThumbColor = Color.White, // Thumb color when OFF
+                                        uncheckedTrackColor = Color(0xFFBBC8D4), // Track background when OFF
+                                        checkedBorderColor = Color.Transparent,
+                                        uncheckedBorderColor = Color.Transparent
+                                    ),
+
+                                    checked = useSystemDefault,
+                                    onCheckedChange = { isChecked ->
+                                        useSystemDefault = isChecked
+                                        viewModel.setThemeMode(
+                                            if (isChecked) ThemeMode.SystemDefault else if (isDarkMode) ThemeMode.Dark
+                                            else ThemeMode.Light
+                                        )
+                                    }
                                 )
-                            )
+
+                            }
+
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .padding(horizontal = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = "Dark Mode", style = MaterialTheme.typography.bodyLarge)
+
+                                Switch(
+                                    enabled = !useSystemDefault,
+                                    colors = SwitchDefaults.colors(
+                                        checkedThumbColor = Color.White, // Thumb color when ON
+                                        checkedTrackColor = Color(0xFF00C04D), // Track background when ON
+                                        uncheckedThumbColor = Color.White, // Thumb color when OFF
+                                        uncheckedTrackColor = Color(0xFFBBC8D4), // Track background when OFF
+                                        checkedBorderColor = Color.Transparent,
+                                        uncheckedBorderColor = Color.Transparent
+                                    ),
+
+                                    checked = isDarkMode,
+                                    onCheckedChange = { isChecked ->
+                                        val newMode =
+                                            if (isChecked) ThemeMode.Dark else ThemeMode.Light
+                                        viewModel.setThemeMode(newMode)
+                                    }
+                                )
+                            }
+
                         }
                     }
                 }
@@ -539,12 +606,15 @@ fun SettingsScreen() {
                         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
                             data = "mailto:".toUri()
                             putExtra(Intent.EXTRA_EMAIL, arrayOf("gmsvisioninfo@gmail.com"))
-                            putExtra(Intent.EXTRA_SUBJECT, "TNPSC Current Affairs Application Feedback")
+                            putExtra(
+                                Intent.EXTRA_SUBJECT,
+                                "TNPSC Current Affairs Application Feedback"
+                            )
                         }
 
-                        try{
+                        try {
                             context.startActivity(Intent.createChooser(emailIntent, "Send mail..."))
-                        }catch(_: ActivityNotFoundException){
+                        } catch (_: ActivityNotFoundException) {
                             Toast.makeText(
                                 context,
                                 "There is no email app installed...", Toast.LENGTH_SHORT
@@ -589,7 +659,8 @@ fun SettingsScreen() {
                             val shareIntent = Intent(Intent.ACTION_SEND)
                             shareIntent.type = "text/plain"
                             shareIntent.putExtra(Intent.EXTRA_SUBJECT, "TNPSC Current Affairs")
-                            var shareMessage = "\nTNPSC Current Affairs (Download It from PlayStore)\n\n"
+                            var shareMessage =
+                                "\nTNPSC Current Affairs (Download It from PlayStore)\n\n"
                             shareMessage =
                                 """
                     ${shareMessage}https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}
@@ -599,7 +670,7 @@ fun SettingsScreen() {
                             shareIntent.putExtra(Intent.EXTRA_TEXT, shareMessage)
                             context.startActivity(Intent.createChooser(shareIntent, "choose one"))
                         } catch (e: Exception) {
-                            Toast.makeText(context,e.message,Toast.LENGTH_SHORT)
+                            Toast.makeText(context, e.message, Toast.LENGTH_SHORT)
                                 .show()
                         }
 
@@ -672,17 +743,17 @@ fun SettingsScreen() {
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
                     onClick = {
-                        try{
+                        try {
                             context.startActivity(
                                 Intent(
                                     Intent.ACTION_VIEW,
                                     "market://details?id=${context.applicationContext.packageName}".toUri()
                                 )
                             )
-                        }catch(_:ActivityNotFoundException){
+                        } catch (_: ActivityNotFoundException) {
                             Intent(
                                 Intent.ACTION_VIEW,
-                                "https://play.google.com/store/apps/details?id=${context.applicationContext.packageNam}".toUri()
+                                "https://play.google.com/store/apps/details?id=${context.applicationContext.packageName}".toUri()
                             )
                         }
                     }
