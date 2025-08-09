@@ -272,7 +272,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         try {
                             request?.url?.let {
                                 val intent = Intent(Intent.ACTION_VIEW, it)
-                                application.applicationContext.startActivity(intent)
+                                view?.context?.startActivity(intent)
                             } ?: run{
                                 Toast.makeText(
                                     application.applicationContext,
