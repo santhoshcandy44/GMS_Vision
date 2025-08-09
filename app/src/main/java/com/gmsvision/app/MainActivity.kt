@@ -452,8 +452,8 @@ fun SettingsScreen() {
 
     val themeMode by viewModel.themeFlow.collectAsState()
 
-    var useSystemDefault by remember(themeMode) { mutableStateOf(themeMode == -1) }
-    val isDarkMode by remember(themeMode) { mutableStateOf(themeMode == 1) }
+    var useSystemDefault by remember{ mutableStateOf(themeMode == -1) }
+    val isDarkMode by remember{ mutableStateOf(themeMode == 1) }
 
     val context = LocalContext.current
 
