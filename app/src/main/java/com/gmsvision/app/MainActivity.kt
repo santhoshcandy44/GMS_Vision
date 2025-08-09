@@ -226,12 +226,25 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     view: WebView?,
                     request: WebResourceRequest?
                 ): Boolean {
-                    val url = request?.url?.toString() ?: return false
-
-                    view?.settings?.cacheMode = WebSettings.LOAD_NO_CACHE
-                    view?.post { view.scrollTo(0, 0) }
-                    view?.loadUrl(url)
-
+                    val url = request?.url ?: return false
+                    if (url.scheme == "http" || url.scheme == "https") {
+                        view?.settings?.cacheMode = WebSettings.LOAD_NO_CACHE
+                        view?.post { view.scrollTo(0, 0) }
+                        view?.loadUrl(url.toString())
+                    }else{
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, url)
+                            view?.context?.startActivity(intent.apply {
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                            })
+                        } catch (_: ActivityNotFoundException) {
+                            Toast.makeText(
+                                application.applicationContext,
+                                "No app found to handle this link",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     return true
                 }
 
@@ -275,7 +288,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                 view?.context?.startActivity(intent.apply {
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
                                 })
-                            } ?: run{
+                            } ?: run {
                                 Toast.makeText(
                                     application.applicationContext,
                                     "Something went wrong",
@@ -288,7 +301,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                 "No app found to handle this link",
                                 Toast.LENGTH_SHORT
                             ).show()
-                        }catch (e: Exception){
+                        } catch (e: Exception) {
                             Toast.makeText(
                                 application.applicationContext,
                                 "${e.message}",
