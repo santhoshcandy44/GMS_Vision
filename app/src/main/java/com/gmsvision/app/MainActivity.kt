@@ -114,11 +114,8 @@ fun MainScreen() {
 
     val activity = LocalContext.current as? Activity?
 
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-
-
 
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
