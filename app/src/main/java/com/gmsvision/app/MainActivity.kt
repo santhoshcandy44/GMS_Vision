@@ -272,7 +272,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         try {
                             request?.url?.let {
                                 val intent = Intent(Intent.ACTION_VIEW, it)
-                                view?.context?.startActivity(intent)
+                                view?.context?.startActivity(intent.apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                })
                             } ?: run{
                                 Toast.makeText(
                                     application.applicationContext,
@@ -284,6 +286,12 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                             Toast.makeText(
                                 application.applicationContext,
                                 "No app found to handle this link",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }catch (e: Exception){
+                            Toast.makeText(
+                                application.applicationContext,
+                                "${e.message}",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
