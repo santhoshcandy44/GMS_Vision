@@ -244,7 +244,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     if (_isRefreshing.value) {
                         _isRefreshing.value = false
                     }
-                    this@HomeViewModel.rootView.isRefreshing = false
+                    (parent as SwipeRefreshLayout).isRefreshing = false
                     _isLoading.value = false
                 }
 
@@ -301,7 +301,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
             loadUrl(this@HomeViewModel.url)
         }
-
     }
 
     val rootView by lazy {
@@ -310,7 +309,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             setOnRefreshListener {
                 isRefreshing = true
                 _isRefreshing.value = true
-                webView.reload()
+                this@HomeViewModel.webView.reload()
             }
         }
     }
