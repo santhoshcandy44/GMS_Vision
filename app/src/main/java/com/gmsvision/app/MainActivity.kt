@@ -220,7 +220,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val webView by lazy {
         WebView(application.applicationContext).apply {
             webViewClient = object : WebViewClient() {
-
                 override fun shouldOverrideUrlLoading(
                     view: WebView?,
                     request: WebResourceRequest?
@@ -242,6 +241,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
+                    if (_isRefreshing.value) {
+                        _isRefreshing.value = false
+                    }
                     this@HomeViewModel.rootView.isRefreshing = false
                     _isLoading.value = false
                 }
@@ -307,6 +309,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             addView(webView)
             setOnRefreshListener {
                 isRefreshing = true
+                _isRefreshing.value = true
                 webView.reload()
             }
         }
