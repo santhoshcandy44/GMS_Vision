@@ -243,6 +243,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
+                    view?.scrollTo(0, 0)
                     if (_isRefreshing.value) {
                         _isRefreshing.value = false
                     }
@@ -663,7 +664,7 @@ fun SettingsScreen() {
                                 "\nTNPSC Current Affairs (Download It from PlayStore)\n\n"
                             shareMessage =
                                 """
-                    ${shareMessage}https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}
+                    ${shareMessage}https://play.google.com/store/apps/details?id=${com.gmsvision.app.BuildConfig.APPLICATION_ID}
                     
             
                     """.trimIndent()
@@ -725,7 +726,7 @@ fun SettingsScreen() {
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "v${BuildConfig.VERSION}",
+                                text = "v${com.gmsvision.app.BuildConfig.VERSION_NAME}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )

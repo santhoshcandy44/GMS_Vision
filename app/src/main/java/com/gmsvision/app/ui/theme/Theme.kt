@@ -11,9 +11,12 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 private val Shapes = Shapes(
@@ -137,7 +140,14 @@ fun AppTheme(
     content: @Composable () -> Unit
 ) {
 
-    val darkTheme = isSystemInDarkTheme()
+    val viewModel = viewModel<ThemeViewModel>()
+    val themeMode by viewModel.themeFlow.collectAsState()
+
+    val darkTheme = when (themeMode) {
+        1 -> true
+        0 -> false
+        else -> isSystemInDarkTheme()
+    }
 
 
     val customColorScheme = if (darkTheme) CustomDarkColorScheme else CustomLightColorScheme
