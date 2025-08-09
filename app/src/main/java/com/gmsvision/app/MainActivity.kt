@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -227,6 +228,20 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val webView by lazy {
         WebView(application.applicationContext).apply {
             webViewClient = object : WebViewClient() {
+
+                override fun shouldOverrideUrlLoading(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): Boolean {
+                    val url = request?.url?.toString() ?: return false
+
+                    view?.settings?.cacheMode = WebSettings.LOAD_NO_CACHE
+                    view?.loadUrl(url)
+                    view?.post { view.scrollTo(0, 0) }
+
+                    return true
+                }
+
                 override fun onPageStarted(
                     view: WebView?,
                     url: String?,
@@ -235,12 +250,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     super.onPageStarted(view, url, favicon)
                     _isAnyError.value = false
                     _isLoading.value = true
-                    view?.scrollTo(0, 0)
                 }
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    view?.scrollTo(0, 0)
                     if (_isRefreshing.value) {
                         _isRefreshing.value = false
                     }
