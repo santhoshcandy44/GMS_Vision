@@ -227,6 +227,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     request: WebResourceRequest?
                 ): Boolean {
                     val url = request?.url ?: return false
+                    view?.invalidate()
                     view?.post { view.scrollTo(0, 0) }
                     view?.loadUrl(url.toString())
                     return true
