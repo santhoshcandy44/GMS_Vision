@@ -201,13 +201,16 @@ fun BottomNavigationBar(navController: NavController) {
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
-    val _isRefreshing = MutableStateFlow(false)
+    private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
-    val _isAnyError = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+    private val _isAnyError = MutableStateFlow(false)
     val isAnyError = _isAnyError.asStateFlow()
 
-    var url = "https://tnpsccurrentaffairs.in"
+    private var url = "https://tnpsccurrentaffairs.in"
 
     val webView by lazy {
         WebView(application.applicationContext).apply {
@@ -219,6 +222,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 ) {
                     super.onPageStarted(view, url, favicon)
                     _isAnyError.value = false
+                    _isLoading.value = true
                 }
 
                 override fun onPageFinished(view: WebView?, url: String?) {
@@ -226,6 +230,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     if (_isRefreshing.value) {
                         _isRefreshing.value = false
                     }
+                    _isLoading.value = false
                 }
 
                 override fun onReceivedError(
@@ -248,7 +253,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun updateIsRefreshing(value: Boolean){
+    fun updateIsRefreshing(value: Boolean) {
         _isRefreshing.value = value
     }
 }
@@ -261,19 +266,18 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
     val isAnyError by viewModel.isAnyError.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
-    val bundle = rememberSaveable { Bundle() }
-    val context = LocalContext.current
     val webView = viewModel.webView
 
 
-        BackHandler {
-            if (webView.canGoBack()) {
-                webView.goBack()
-            } else {
-                onPopBackStack()
-            }
+    BackHandler {
+        if (webView.canGoBack()) {
+            webView.goBack()
+        } else {
+            onPopBackStack()
         }
+    }
 
     Column(
         modifier = Modifier
@@ -356,10 +360,10 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
                         },
                         onRelease = { view ->
-                            view.saveState(bundle)
+
                         },
                         onReset = { view ->
-                            view.saveState(bundle)
+
                         },
                         modifier = Modifier
                             .fillMaxSize()
