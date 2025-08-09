@@ -229,8 +229,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     val url = request?.url?.toString() ?: return false
 
                     view?.settings?.cacheMode = WebSettings.LOAD_NO_CACHE
-                    view?.loadUrl(url)
                     view?.post { view.scrollTo(0, 0) }
+                    view?.loadUrl(url)
 
                     return true
                 }
@@ -251,6 +251,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         _isRefreshing.value = false
                     }
                     _isLoading.value = false
+
+                    // Disable scroll restoration inside the page
+                    view?.evaluateJavascript(
+                        "if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0,0);",
+                        null
+                    )
+
+                    // Safety re-scroll after images/layout shift
+                    view?.postDelayed({ view.scrollTo(0, 0) }, 100)
                 }
 
                 override fun onReceivedError(
@@ -259,15 +268,45 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     error: WebResourceError?
                 ) {
                     super.onReceivedError(view, request, error)
-                    _isAnyError.value = true
+                    if (error?.errorCode == WebViewClient.ERROR_UNSUPPORTED_SCHEME) {
+                        try {
+                            request?.url?.let {
+                                val intent = Intent(Intent.ACTION_VIEW, it)
+                                application.applicationContext.startActivity(intent)
+                            } ?: run{
+                                Toast.makeText(
+                                    application.applicationContext,
+                                    "Something went wrong",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+
+                        } catch (_: ActivityNotFoundException) {
+                            Toast.makeText(
+                                application.applicationContext,
+                                "No app found to handle this link",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            application.applicationContext,
+                            error?.description ?: "",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                        _isAnyError.value = true
+                    }
                 }
             }
+
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.loadWithOverviewMode = true
             settings.useWideViewPort = true
             settings.builtInZoomControls = true
             settings.displayZoomControls = false
+
             loadUrl(this@HomeViewModel.url)
         }
 
@@ -572,7 +611,7 @@ fun SettingsScreen() {
                                 Text(text = "Dark Mode", style = MaterialTheme.typography.bodyLarge)
 
                                 Switch(
-                                    enabled = themeMode!=-1,
+                                    enabled = themeMode != -1,
                                     colors = SwitchDefaults.colors(
                                         checkedThumbColor = Color.White, // Thumb color when ON
                                         checkedTrackColor = Color(0xFF00C04D), // Track background when ON
@@ -582,7 +621,7 @@ fun SettingsScreen() {
                                         uncheckedBorderColor = Color.Transparent
                                     ),
 
-                                    checked = themeMode==1,
+                                    checked = themeMode == 1,
                                     onCheckedChange = { isChecked ->
                                         val newMode =
                                             if (isChecked) ThemeMode.Dark else ThemeMode.Light
