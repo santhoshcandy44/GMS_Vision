@@ -242,9 +242,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 override fun onPageFinished(view: WebView?, url: String?) {
                     super.onPageFinished(view, url)
-                    if (_isRefreshing.value) {
-                        _isRefreshing.value = false
-                    }
+                    this@HomeViewModel.rootView.isRefreshing = false
                     _isLoading.value = false
                 }
 
