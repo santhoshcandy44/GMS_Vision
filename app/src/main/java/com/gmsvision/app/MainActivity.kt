@@ -280,7 +280,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
-
                         } catch (_: ActivityNotFoundException) {
                             Toast.makeText(
                                 application.applicationContext,
