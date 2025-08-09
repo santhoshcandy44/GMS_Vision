@@ -227,26 +227,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     request: WebResourceRequest?
                 ): Boolean {
                     val url = request?.url ?: return false
-                    if (url.scheme == "http" || url.scheme == "https") {
-                        view?.settings?.cacheMode = WebSettings.LOAD_NO_CACHE
-                        view?.post { view.scrollTo(0, 0) }
-                        view?.loadUrl(url.toString())
-                    }else{
-                        try {
-                            val intent = Intent(Intent.ACTION_VIEW, url)
-                            view?.context?.startActivity(intent.apply {
-                                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            })
-                        } catch (_: ActivityNotFoundException) {
-                            Toast.makeText(
-                                application.applicationContext,
-                                "No app found to handle this link",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-
-                        return false
-                    }
+                    view?.post { view.scrollTo(0, 0) }
+                    view?.loadUrl(url.toString())
                     return true
                 }
 
@@ -266,15 +248,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         _isRefreshing.value = false
                     }
                     _isLoading.value = false
-
-                    // Disable scroll restoration inside the page
-                    view?.evaluateJavascript(
-                        "if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; window.scrollTo(0,0);",
-                        null
-                    )
-
-                    // Safety re-scroll after images/layout shift
-                    view?.postDelayed({ view.scrollTo(0, 0) }, 100)
                 }
 
                 override fun onReceivedError(
@@ -315,8 +288,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                             application.applicationContext,
                             error?.description ?: "",
                             Toast.LENGTH_SHORT
-                        )
-                            .show()
+                        ).show()
                         _isAnyError.value = true
                     }
                 }
