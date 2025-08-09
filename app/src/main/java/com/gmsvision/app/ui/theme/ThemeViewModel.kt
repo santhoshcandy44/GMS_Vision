@@ -42,7 +42,6 @@ class ThemeViewModel (application: Application): AndroidViewModel(application) {
         }
         viewModelScope.launch {
             sharedPreferences.edit(commit = true){ putInt("theme_mode", modeInt) }
-            _themeFlow.value = modeInt
         }
     }
 }

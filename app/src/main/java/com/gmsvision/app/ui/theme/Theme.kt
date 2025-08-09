@@ -149,7 +149,6 @@ fun AppTheme(
         else -> isSystemInDarkTheme()
     }
 
-
     val customColorScheme = if (darkTheme) CustomDarkColorScheme else CustomLightColorScheme
 
     CompositionLocalProvider(
