@@ -41,7 +41,7 @@ class ThemeViewModel (application: Application): AndroidViewModel(application) {
             is ThemeMode.SystemDefault -> -1
         }
         viewModelScope.launch {
-            sharedPreferences.edit { putInt("theme_mode", modeInt) }
+            sharedPreferences.edit(commit = true){ putInt("theme_mode", modeInt) }
             _themeFlow.value = modeInt
         }
     }
