@@ -50,9 +50,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -80,6 +77,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.gmsvision.app.ui.theme.AppTheme
 import com.gmsvision.app.ui.theme.ThemeMode
 import com.gmsvision.app.ui.theme.ThemeViewModel
@@ -218,6 +216,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private var url = "https://tnpsccurrentaffairs.in"
 
+
     val webView by lazy {
         WebView(application.applicationContext).apply {
             webViewClient = object : WebViewClient() {
@@ -305,8 +304,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     }
 
-    fun updateIsRefreshing(value: Boolean) {
-        _isRefreshing.value = value
+    val rootView by lazy {
+        SwipeRefreshLayout(application.applicationContext).apply {
+            addView(webView)
+            setOnRefreshListener {
+                isRefreshing = true
+                webView.reload()
+            }
+        }
     }
 }
 
@@ -319,6 +324,8 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
     val isAnyError by viewModel.isAnyError.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    val rootView = viewModel.rootView
 
     val webView = viewModel.webView
 
@@ -406,7 +413,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                 ) {
                     AndroidView(
                         factory = { context ->
-                            webView
+                            rootView
                         },
                         update = { view ->
 
@@ -420,21 +427,8 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(12.dp))
-                            .pullToRefresh(
-                                isRefreshing = isRefreshing,
-                                state = state,
-                                onRefresh = {
-                                    viewModel.updateIsRefreshing(true)
-                                    webView.reload()
-                                })
                     )
                 }
-
-                Indicator(
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    isRefreshing = isRefreshing,
-                    state = state
-                )
             }
 
             if (!isRefreshing && isLoading) {
