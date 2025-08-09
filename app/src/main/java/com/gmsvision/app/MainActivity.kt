@@ -382,7 +382,7 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
             }
 
             if (!isRefreshing && isLoading) {
-                LoadingAlertDialog()
+                LoadingAlertDialog(modifier = Modifier.align(Alignment.Center))
             }
         }
     }
@@ -390,13 +390,14 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadingAlertDialog() {
+fun LoadingAlertDialog(modifier: Modifier = Modifier) {
     BasicAlertDialog(
         onDismissRequest = { },
         properties = DialogProperties(
             dismissOnBackPress = false,
             dismissOnClickOutside = false
-        )
+        ),
+        modifier = modifier
     ) {
         Card(
             modifier = Modifier
