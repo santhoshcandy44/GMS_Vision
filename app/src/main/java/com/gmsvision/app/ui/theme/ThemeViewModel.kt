@@ -20,7 +20,7 @@ class ThemeViewModel (application: Application): AndroidViewModel(application) {
 
     private val sharedPreferences = application.applicationContext.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
 
-    private val _themeFlow = MutableStateFlow(getThemeMode())
+    private val _themeFlow = MutableStateFlow(-1)
     val themeFlow  = _themeFlow.asStateFlow()
 
     init {
