@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "992662224365",
+    "project_id": "tnpsc-current-affairs",
+    "storage_bucket": "tnpsc-current-affairs.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:992662224365:android:53081eaba162d5077f3be4",
+        "android_client_info": {
+          "package_name": "com.gmsvision.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUymvHPSAWATNQxqhXxOjiMbwVYnvJ5ac"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
