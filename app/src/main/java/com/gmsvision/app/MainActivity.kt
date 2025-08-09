@@ -401,7 +401,7 @@ fun LoadingAlertDialog() {
         Card(
             modifier = Modifier
                 .wrapContentSize(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(8.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             CircularProgressIndicator(
