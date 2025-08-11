@@ -126,7 +126,7 @@ fun MainScreen() {
 
     val isDisclaimerAccepted by viewModel.consentGiven.collectAsState()
 
-    if (isDisclaimerAccepted) {
+    if (!isDisclaimerAccepted) {
         Box(modifier = Modifier.fillMaxSize()) {
             DisclaimerDialog(onAccept = {
                 viewModel.setConsentGiven(true)
