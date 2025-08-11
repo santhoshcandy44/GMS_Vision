@@ -51,7 +51,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -289,7 +288,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                     error: WebResourceError?
                 ) {
                     super.onReceivedError(view, request, error)
-                    if (error?.errorCode == WebViewClient.ERROR_UNSUPPORTED_SCHEME) {
+                    if (error?.errorCode == ERROR_UNSUPPORTED_SCHEME) {
                         try {
                             request?.url?.let {
                                 val intent = Intent(Intent.ACTION_VIEW, it)
@@ -411,9 +410,6 @@ fun HomeScreen(onPopBackStack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
-
-            val state = rememberPullToRefreshState()
 
             if (isAnyError) {
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -736,7 +732,7 @@ fun SettingsScreen() {
                                 "\nTNPSC Current Affairs (Download It from PlayStore)\n\n"
                             shareMessage =
                                 """
-                    ${shareMessage}https://play.google.com/store/apps/details?id=${com.gmsvision.app.BuildConfig.APPLICATION_ID}
+                    ${shareMessage}https://play.google.com/store/apps/details?id=${BuildConfig.APPLICATION_ID}
                     
             
                     """.trimIndent()
@@ -798,7 +794,7 @@ fun SettingsScreen() {
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "v${com.gmsvision.app.BuildConfig.VERSION_NAME}",
+                                text = "v${BuildConfig.VERSION_NAME}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
