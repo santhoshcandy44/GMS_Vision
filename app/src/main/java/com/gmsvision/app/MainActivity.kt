@@ -3,6 +3,7 @@ package com.gmsvision.app
 import android.app.Activity
 import android.app.Application
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -83,6 +84,7 @@ import com.gmsvision.app.ui.theme.ThemeMode
 import com.gmsvision.app.ui.theme.ThemeViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import androidx.core.content.edit
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
@@ -99,35 +101,68 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val prefs = application.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+
+    private val _consentGiven = MutableStateFlow(readConsentFromPrefs())
+    val consentGiven = _consentGiven.asStateFlow()
+
+    private fun readConsentFromPrefs(): Boolean {
+        return prefs.getBoolean("disclaimer_accepted", false)
+    }
+
+    fun setConsentGiven(accepted: Boolean) {
+        prefs.edit { putBoolean("disclaimer_accepted", accepted) }
+        _consentGiven.value = accepted
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
-    val navController = rememberNavController()
 
-    val activity = LocalContext.current as? Activity?
+    val viewModel = viewModel<MainViewModel>()
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val isDisclaimerAccepted by viewModel.consentGiven.collectAsState()
 
-    Scaffold(
-        bottomBar = { BottomNavigationBar(navController) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("home") {
-                HomeScreen(onPopBackStack = {
-                    if (currentRoute == "home") {
-                        activity?.finish()
-                    } else {
-                        navController.popBackStack("home", false)
-                    }
-                })
+    if (isDisclaimerAccepted) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            DisclaimerDialog(onAccept = {
+                viewModel.setConsentGiven(true)
+            }) { }
+        }
+    } else {
+
+        val navController = rememberNavController()
+
+        val activity = LocalContext.current as? Activity?
+
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+
+        Scaffold(
+            bottomBar = { BottomNavigationBar(navController) },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { paddingValues ->
+
+            NavHost(
+                navController = navController,
+                startDestination = "home",
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("home") {
+                    HomeScreen(onPopBackStack = {
+                        if (currentRoute == "home") {
+                            activity?.finish()
+                        } else {
+                            navController.popBackStack("home", false)
+                        }
+                    })
+                }
+                composable("settings") { SettingsScreen() }
             }
-            composable("settings") { SettingsScreen() }
         }
     }
 }

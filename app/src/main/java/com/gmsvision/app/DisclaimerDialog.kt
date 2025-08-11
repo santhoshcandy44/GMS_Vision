@@ -20,7 +20,7 @@ import androidx.compose.ui.window.DialogProperties
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DisclaimerDialog(onDismiss: () -> Unit, onAccept: () -> Unit) {
+fun DisclaimerDialog(onAccept: () -> Unit, onDismiss: () -> Unit,) {
     AlertDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
